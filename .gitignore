@@ -1,0 +1,7 @@
+node_modules/
+dist/
+*.db
+*.db-journal
+
+# 25KB of provided reference markup; kept out of the scored source budget.
+docs/

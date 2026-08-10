@@ -1,0 +1,115 @@
+@import "tailwindcss";
+
+/* Tokens from docs/ui-design/DESIGN.md frontmatter; where it and code.html
+   disagree (the radius scale) DESIGN.md wins. body-md is omitted as 16px/24px
+   is identical to Tailwind's stock `text-base`. */
+@theme {
+  --font-sans: "Plus Jakarta Sans", ui-sans-serif, system-ui, sans-serif;
+
+  --color-background: #f7f9fb;
+  --color-surface: #f7f9fb;
+  --color-surface-dim: #d8dadc;
+  --color-surface-lowest: #fff;
+  --color-surface-low: #f2f4f6;
+  --color-surface-container: #eceef0;
+  --color-surface-variant: #e0e3e5;
+  --color-on-surface: #191c1e;
+  --color-on-surface-variant: #5b403e;
+  --color-outline-variant: #e4beba;
+  --color-primary: #b61722;
+  --color-on-primary: #fff;
+  --color-primary-container: #da3437;
+  --color-secondary: #855300;
+  --color-secondary-container: #fea619;
+  --color-error: #ba1a1a;
+  --color-on-error: #fff;
+  --color-error-container: #ffdad6;
+  --color-on-error-container: #93000a;
+  --color-inverse-surface: #2d3133;
+  --color-inverse-on-surface: #eff1f3;
+
+  --radius-sm: 0.25rem;
+  --radius-md: 0.75rem;
+  --radius-lg: 1rem;
+  --radius-xl: 1.5rem;
+
+  --spacing-gutter: 24px;
+  --spacing-page: 16px;
+  --spacing-page-lg: 48px;
+
+  --text-display: 40px;
+  --text-display--line-height: 48px;
+  --text-display--letter-spacing: -0.02em;
+  --text-display--font-weight: 800;
+  --text-display-sm: 32px;
+  --text-display-sm--line-height: 38px;
+  --text-display-sm--letter-spacing: -0.02em;
+  --text-display-sm--font-weight: 800;
+  --text-title: 24px;
+  --text-title--line-height: 32px;
+  --text-title--font-weight: 700;
+  --text-lead: 18px;
+  --text-lead--line-height: 28px;
+  --text-lead--font-weight: 500;
+  --text-cap: 14px;
+  --text-cap--line-height: 20px;
+  --text-cap--letter-spacing: 0.05em;
+  --text-cap--font-weight: 700;
+  --text-total: 48px;
+  --text-total--line-height: 1;
+  --text-total--letter-spacing: -0.04em;
+  --text-total--font-weight: 800;
+
+  --shadow-card: 0 4px 20px rgb(30 41 59 / 0.05);
+  --shadow-lift: 0 8px 24px rgb(30 41 59 / 0.08);
+}
+
+@layer base {
+  body {
+    background: var(--color-background);
+    color: var(--color-on-surface);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+  }
+  /* Steppers own the increment affordance; native spinners duplicate it. */
+  input[type="number"] {
+    -moz-appearance: textfield;
+  }
+  input[type="number"]::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+  }
+  :focus-visible {
+    outline: 2px solid var(--color-primary);
+    outline-offset: 2px;
+  }
+  /* Must beat the layout utilities on elements toggled via [hidden]. */
+  [hidden] {
+    display: none !important;
+  }
+  button,
+  input {
+    transition: color 0.2s, background-color 0.2s, border-color 0.2s, opacity 0.2s, transform 0.2s, box-shadow 0.2s;
+  }
+}
+
+@utility card {
+  background: var(--color-surface-lowest);
+  box-shadow: var(--shadow-card);
+  border-radius: var(--radius-lg);
+}
+@utility stepper {
+  @apply flex items-center rounded-md border border-surface-variant bg-surface-low p-1;
+}
+@utility step {
+  @apply flex items-center justify-center rounded-sm bg-surface-lowest text-on-surface-variant shadow-sm
+    hover:text-primary active:scale-95 disabled:opacity-35 disabled:hover:text-on-surface-variant;
+}
+@utility btn-primary {
+  @apply flex items-center justify-center gap-2 rounded-lg bg-primary text-cap uppercase text-on-primary shadow-md
+    hover:-translate-y-0.5 hover:bg-primary-container hover:shadow-lift active:scale-[.98]
+    disabled:cursor-not-allowed disabled:opacity-45 disabled:hover:translate-y-0;
+}
+@utility field-label {
+  @apply text-cap uppercase text-on-surface-variant;
+}
