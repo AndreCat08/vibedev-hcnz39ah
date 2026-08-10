@@ -1,37 +1,25 @@
 /**
- * Pure split engine, imported by both the browser and the server so a share
- * link can never disagree with what was on screen.
- *
- * Money is integer cents throughout. Float dollars let shares drift off the
- * bill: at $45.00 over 8 slices, rounding each `slices * pricePerSlice`
- * independently yields 16.88 + 22.50 + 5.63 = $45.01.
+ * Pure split engine, imported by both browser and server so a shared summary
+ * can never disagree with what was on screen. Money is integer cents
+ * throughout — float dollars let shares drift off the bill: $45.00 over 8
+ * slices, rounded independently, yields 16.88 + 22.50 + 5.63 = $45.01.
  */
 
 export type Person = { id: string; name: string; slices: number };
 export type SplitInput = { totalCents: number; people: Person[] };
-export type SplitResult = {
-  /** Parallel to `people`; always sums to exactly `totalCents`. */
-  shares: number[];
-  totalSlices: number;
-  /** Display only, never an input to allocation. May be fractional. */
-  perSliceCents: number;
-};
+export type SplitResult = { shares: number[]; totalSlices: number; perSliceCents: number };
 export type Invalid = { error: string };
 
 export const LIMITS = { people: 50, slices: 100, totalCents: 100_000_000, name: 40 } as const;
 
 const money = new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" });
 export const formatCents = (cents: number) => money.format(cents / 100);
-
 export const clampSlices = (v: unknown) => Math.max(0, Math.min(LIMITS.slices, Math.floor(Number(v)) || 0));
-
-/** The label shown when someone never typed a name. */
 export const displayName = (p: Person, i: number) => p.name.trim() || `Person ${i + 1}`;
 
 /** Typed money to cents; `null` when unrepresentable, so callers can tell garbage from zero. */
 export function parseMoneyToCents(input: string): number | null {
-  // Outer space is forgiven and $/, stripped, but interior space is not:
-  // "4 5" is a typo, not forty-five.
+  // Outer space forgiven, $/, stripped, but interior space is not: "4 5" is a typo, not 45.
   const s = input.trim().replace(/[$,]/g, "");
   if (s === "") return 0;
   if (!/^\d+(\.\d{1,2})?$/.test(s)) return null;
@@ -40,12 +28,9 @@ export function parseMoneyToCents(input: string): number | null {
   return Number.isSafeInteger(cents) && cents <= LIMITS.totalCents ? cents : null;
 }
 
-/**
- * Split `totalCents` proportionally to `slices` by largest remainder, so the
- * parts always add back to the whole: everyone takes their floor share, then
- * the few leftover cents go one apiece to the largest remainders, ties by
- * index so the result is deterministic.
- */
+/** Largest-remainder split: everyone takes floor(total*slices/totalSlices),
+ *  then leftover cents go one apiece to the biggest remainders (ties by
+ *  index), so the parts always add back to exactly `totalCents`. */
 export function allocate(totalCents: number, slices: number[]): number[] {
   const totalSlices = slices.reduce((a, b) => a + b, 0);
   if (totalSlices <= 0 || totalCents <= 0) return slices.map(() => 0);
@@ -73,11 +58,9 @@ export function computeSplit({ totalCents, people }: SplitInput): SplitResult {
 const int = (v: unknown, max: number): v is number =>
   typeof v === "number" && Number.isSafeInteger(v) && v >= 0 && v <= max;
 
-/**
- * Trust boundary for anything arriving over HTTP. Rejects rather than silently
- * clamping, so a malformed client hears about it instead of persisting
- * something subtly different from what it sent.
- */
+/** Trust boundary for anything arriving over HTTP: rejects rather than
+ *  clamping, so a malformed client hears about it instead of silently
+ *  persisting something different from what it sent. */
 export function parseSplitInput(raw: unknown): SplitInput | Invalid {
   if (typeof raw !== "object" || raw === null) return { error: "Body must be a JSON object." };
   const { totalCents, people } = raw as Record<string, unknown>;

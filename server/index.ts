@@ -9,8 +9,7 @@ const PORT = Number(process.env["PORT"]) || 5173;
 const DIST = fileURLToPath(new URL("../dist/", import.meta.url));
 const MAX_BODY = 8 * 1024;
 
-// In dev, Vite runs in-process as middleware: one command, and the client hits
-// the real API on the same origin, so there is no proxy config to drift.
+// Dev runs Vite in-process as middleware: one command, same-origin API, no proxy to drift.
 const vite = PROD ? null : await (await import("vite")).createServer({ server: { middlewareMode: true }, appType: "spa" });
 
 const MIME: Record<string, string> = {
@@ -18,8 +17,6 @@ const MIME: Record<string, string> = {
   ".js": "text/javascript; charset=utf-8",
   ".css": "text/css; charset=utf-8",
   ".json": "application/json; charset=utf-8",
-  ".svg": "image/svg+xml",
-  ".woff2": "font/woff2",
 };
 
 const CSP =
@@ -27,12 +24,11 @@ const CSP =
   "font-src https://fonts.gstatic.com; connect-src 'self'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'";
 
 function head(res: ServerResponse, status: number, type: string) {
-  // Vite's dev client needs inline scripts and a websocket; production does not.
   res.writeHead(status, {
     "content-type": type,
     "x-content-type-options": "nosniff",
     "referrer-policy": "no-referrer",
-    ...(PROD ? { "content-security-policy": CSP } : {}),
+    ...(PROD ? { "content-security-policy": CSP } : {}), // dev's Vite client needs inline scripts + a websocket
   });
 }
 
@@ -41,8 +37,7 @@ const json = (res: ServerResponse, status: number, body: unknown) => {
   res.end(JSON.stringify(body));
 };
 
-/** Reads at most MAX_BODY bytes, stopping the moment the cap is passed rather
- *  than draining a body whose length an attacker chooses. */
+/** Stops reading the instant MAX_BODY is passed, rather than draining a body an attacker sized. */
 const readBody = (req: IncomingMessage) =>
   new Promise<string>((resolve, reject) => {
     let size = 0;
@@ -79,9 +74,8 @@ async function api(req: IncomingMessage, res: ServerResponse, path: string) {
       return json(res, 400, { error: "Body is not valid JSON." });
     }
 
+    // The server recomputes shares itself; the client never gets to assert its own money.
     const input = parseSplitInput(body);
-    // The client never gets to assert its own shares — the server recomputes
-    // them from the same engine and that recomputation is the only answer sent back.
     return "error" in input ? json(res, 400, input) : json(res, 200, computeSplit(input));
   }
 
@@ -96,8 +90,7 @@ async function serveStatic(path: string, res: ServerResponse) {
     return json(res, 400, { error: "Malformed URL." });
   }
 
-  // normalize() collapses "..", and the prefix check re-confirms it: nothing
-  // outside dist/ is servable.
+  // normalize() collapses ".."; the prefix check re-confirms dist/ can't be escaped.
   const file = join(DIST, normalize(decoded).replace(/^[/\\]+/, ""));
   if (!join(file, ".").startsWith(join(DIST, "."))) return json(res, 403, { error: "Forbidden." });
 
@@ -108,8 +101,7 @@ async function serveStatic(path: string, res: ServerResponse) {
     res.end(body);
   } catch {
     if (ext) return json(res, 404, { error: "Not found." });
-    // Extensionless miss: hand back the SPA shell.
-    head(res, 200, MIME[".html"]!);
+    head(res, 200, MIME[".html"]!); // extensionless miss: hand back the SPA shell
     res.end(await readFile(join(DIST, "index.html")));
   }
 }
