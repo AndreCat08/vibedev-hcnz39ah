@@ -1,23 +1,27 @@
 {
-  "name": "slice-splitter",
+  "name": "vibedev-hcnz39ah",
   "version": "1.0.0",
-  "private": true,
-  "type": "module",
-  "engines": {
-    "node": ">=22.6"
+  "description": "",
+  "main": "index.js",
+  "directories": {
+    "doc": "docs"
   },
   "scripts": {
-    "dev": "node server/index.ts",
-    "build": "vite build",
-    "start": "node server/index.ts --prod",
-    "test": "node --test shared/split.test.ts",
-    "typecheck": "tsc --noEmit"
+    "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "devDependencies": {
-    "@tailwindcss/vite": "^4.1.11",
-    "@types/node": "^24.0.0",
-    "tailwindcss": "^4.1.11",
-    "typescript": "^5.8.3",
-    "vite": "^7.0.0"
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/AndreCat08/vibedev-hcnz39ah.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/AndreCat08/vibedev-hcnz39ah/issues"
+  },
+  "homepage": "https://github.com/AndreCat08/vibedev-hcnz39ah#readme",
+  "dependencies": {
+    "express": "^5.2.1"
   }
 }

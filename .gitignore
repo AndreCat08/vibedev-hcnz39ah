@@ -1,12 +1,6 @@
 node_modules/
+package-lock.json
+.DS_Store
+.env
 dist/
-*.db
-*.db-journal
-
-# 25KB of provided reference markup; kept out of the scored source budget.
-docs/
-
-# Runs locally in dev (npm test) but stays out of the 25KB source budget.
-# The property it proves (allocated shares always sum to the bill, to the
-# cent) is documented in README.md instead.
-shared/split.test.ts
+build/
